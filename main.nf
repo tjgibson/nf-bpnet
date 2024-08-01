@@ -25,6 +25,7 @@ log.info """
 
 process stranded_bigwig {
 	tag "$meta.sample"
+	publishDir "${params.results_dir}/bigwigs/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -81,6 +82,7 @@ process stranded_bigwig {
 
 process remove_outliers {
 	tag "$meta.sample"
+	publishDir "${params.results_dir}/filtered_peaks/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -154,6 +156,7 @@ process remove_outliers {
 
 process gc_matched_negatives {
 	tag "$meta.sample"
+	publishDir "${params.results_dir}/modeling/background_regions/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -196,6 +199,7 @@ process gc_matched_negatives {
 
 process train_bpnet {
 	tag "$meta.sample"
+	publishDir "${params.results_dir}/modeling/bpnet_models/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -475,7 +479,6 @@ workflow {
 	file("${launchDir}/${params.chrom_splits}", checkIfExists: true),
 	file(params.bpnet_params, checkIfExists: true)	
 	)
-	| view
 	
 }
 
