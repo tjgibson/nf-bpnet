@@ -98,18 +98,18 @@ process remove_outliers {
     """
     touch input.json
 	echo "{" >> input.json
-	echo "\"0\": {" >> input.json
-	echo "\"signal\": {" >> input.json
-	echo "\"source\": [\"${plus_bw}\"," >> input.json
-	echo "\"${minus_bw}\"]" >> input.json
+	echo "\\"0\\": {" >> input.json
+	echo "\\"signal\\": {" >> input.json
+	echo "\\"source\\": [\\"${plus_bw}\\"," >> input.json
+	echo "\\"${minus_bw}\\"]" >> input.json
 	echo "}," >> input.json
-	echo "\"loci\": {" >> input.json
-	echo "\"source\": [\"${peaks}\"]" >> input.json
+	echo "\\"loci\\": {" >> input.json
+	echo "\\"source\\": [\\"${peaks}\\"]" >> input.json
 	echo "}," >> input.json
-	echo "\"bias\": {" >> input.json
-	echo "\"source\": [\"${control_plus_bw}\"," >> input.json
-	echo "\"${control_minus_bw}\"]," >> input.json
-	echo "\"smoothing\": [null, null]" >> input.json
+	echo "\\"bias\\": {" >> input.json
+	echo "\\"source\\": [\\"${control_plus_bw}\\"," >> input.json
+	echo "\\"${control_minus_bw}\\"]," >> input.json
+	echo "\\"smoothing\\": [null, null]" >> input.json
 	echo "}" >> input.json
 	echo "}" >> input.json
 	echo "}" >> input.json
@@ -130,18 +130,18 @@ process remove_outliers {
     """
     touch input.json
 	echo "{" >> input.json
-	echo "\"0\": {" >> input.json
-	echo "\"signal\": {" >> input.json
-	echo "\"source\": [\"${plus_bw}\"," >> input.json
-	echo "\"${minus_bw}\"]" >> input.json
+	echo "\\"0\\": {" >> input.json
+	echo "\\"signal\\": {" >> input.json
+	echo "\\"source\\": [\\"${plus_bw}\\"," >> input.json
+	echo "\\"${minus_bw}\\"]" >> input.json
 	echo "}," >> input.json
-	echo "\"loci\": {" >> input.json
-	echo "\"source\": [\"${peaks}\"]" >> input.json
+	echo "\\"loci\\": {" >> input.json
+	echo "\\"source\\": [\\"${peaks}\\"]" >> input.json
 	echo "}," >> input.json
-	echo "\"bias\": {" >> input.json
-	echo "\"source\": [\"${control_plus_bw}\"," >> input.json
-	echo "\"${control_minus_bw}\"]," >> input.json
-	echo "\"smoothing\": [null, null]" >> input.json
+	echo "\\"bias\\": {" >> input.json
+	echo "\\"source\\": [\\"${control_plus_bw}\\"," >> input.json
+	echo "\\"${control_minus_bw}\\"]," >> input.json
+	echo "\\"smoothing\\": [null, null]" >> input.json
 	echo "}" >> input.json
 	echo "}" >> input.json
 	echo "}" >> input.json
@@ -218,22 +218,22 @@ process train_bpnet {
     """
     touch ${meta.sample}_input.json
     echo "{" >> ${meta.sample}_input.json
-	echo "    \"0\": {" >> ${meta.sample}_input.json
-	echo "        \"signal\": {" >> ${meta.sample}_input.json
-	echo "            \"source\": [\"${plus_bw}\", " >> ${meta.sample}_input.json
-	echo "                     \"${minus_bw}\"]" >> ${meta.sample}_input.json
+	echo "    \\"0\\": {" >> ${meta.sample}_input.json
+	echo "        \\"signal\\": {" >> ${meta.sample}_input.json
+	echo "            \\"source\\": [\\"${plus_bw}\\", " >> ${meta.sample}_input.json
+	echo "                     \\"${minus_bw}\\"]" >> ${meta.sample}_input.json
 	echo "        }," >> ${meta.sample}_input.json
-	echo "        \"loci\": {" >> ${meta.sample}_input.json
-	echo "            \"source\": [\"${peaks}\"]" >> ${meta.sample}_input.json
+	echo "        \\"loci\\": {" >> ${meta.sample}_input.json
+	echo "            \\"source\\": [\\"${peaks}\\"]" >> ${meta.sample}_input.json
 	echo "        }," >> ${meta.sample}_input.json
-	echo "        \"background_loci\": {" >> ${meta.sample}_input.json
-	echo "            \"source\": [\"${gc_background}\"]," >> ${meta.sample}_input.json
-	echo "            \"ratio\": [0.25]" >> ${meta.sample}_input.json
+	echo "        \\"background_loci\\": {" >> ${meta.sample}_input.json
+	echo "            \\"source\\": [\\"${gc_background}\\"]," >> ${meta.sample}_input.json
+	echo "            \\"ratio\\": [0.25]" >> ${meta.sample}_input.json
 	echo "        }," >> ${meta.sample}_input.json
-	echo "        \"bias\": {" >> ${meta.sample}_input.json
-	echo "            \"source\": [\"${control_plus_bw}\"," >> ${meta.sample}_input.json
-	echo "                     \"${control_minus_bw}\"]," >> ${meta.sample}_input.json
-	echo "            \"smoothing\": [null, null]" >> ${meta.sample}_input.json
+	echo "        \\"bias\\": {" >> ${meta.sample}_input.json
+	echo "            \\"source\\": [\\"${control_plus_bw}\\"," >> ${meta.sample}_input.json
+	echo "                     \\"${control_minus_bw}\\"]," >> ${meta.sample}_input.json
+	echo "            \\"smoothing\\": [null, null]" >> ${meta.sample}_input.json
 	echo "        }" >> ${meta.sample}_input.json
 	echo "    }" >> ${meta.sample}_input.json
 	echo "}" >> ${meta.sample}_input.json
@@ -263,24 +263,24 @@ process train_bpnet {
 	
 	stub:
 	"""
-    touch ${meta.sample}_input.json
+     touch ${meta.sample}_input.json
     echo "{" >> ${meta.sample}_input.json
-	echo "    \"0\": {" >> ${meta.sample}_input.json
-	echo "        \"signal\": {" >> ${meta.sample}_input.json
-	echo "            \"source\": [\"${plus_bw}\", " >> ${meta.sample}_input.json
-	echo "                     \"${minus_bw}\"]" >> ${meta.sample}_input.json
+	echo "    \\"0\\": {" >> ${meta.sample}_input.json
+	echo "        \\"signal\\": {" >> ${meta.sample}_input.json
+	echo "            \\"source\\": [\\"${plus_bw}\\", " >> ${meta.sample}_input.json
+	echo "                     \\"${minus_bw}\\"]" >> ${meta.sample}_input.json
 	echo "        }," >> ${meta.sample}_input.json
-	echo "        \"loci\": {" >> ${meta.sample}_input.json
-	echo "            \"source\": [\"${peaks}\"]" >> ${meta.sample}_input.json
+	echo "        \\"loci\\": {" >> ${meta.sample}_input.json
+	echo "            \\"source\\": [\\"${peaks}\\"]" >> ${meta.sample}_input.json
 	echo "        }," >> ${meta.sample}_input.json
-	echo "        \"background_loci\": {" >> ${meta.sample}_input.json
-	echo "            \"source\": [\"${gc_background}\"]," >> ${meta.sample}_input.json
-	echo "            \"ratio\": [0.25]" >> ${meta.sample}_input.json
+	echo "        \\"background_loci\\": {" >> ${meta.sample}_input.json
+	echo "            \\"source\\": [\\"${gc_background}\\"]," >> ${meta.sample}_input.json
+	echo "            \\"ratio\\": [0.25]" >> ${meta.sample}_input.json
 	echo "        }," >> ${meta.sample}_input.json
-	echo "        \"bias\": {" >> ${meta.sample}_input.json
-	echo "            \"source\": [\"${control_plus_bw}\"," >> ${meta.sample}_input.json
-	echo "                     \"${control_minus_bw}\"]," >> ${meta.sample}_input.json
-	echo "            \"smoothing\": [null, null]" >> ${meta.sample}_input.json
+	echo "        \\"bias\\": {" >> ${meta.sample}_input.json
+	echo "            \\"source\\": [\\"${control_plus_bw}\\"," >> ${meta.sample}_input.json
+	echo "                     \\"${control_minus_bw}\\"]," >> ${meta.sample}_input.json
+	echo "            \\"smoothing\\": [null, null]" >> ${meta.sample}_input.json
 	echo "        }" >> ${meta.sample}_input.json
 	echo "    }" >> ${meta.sample}_input.json
 	echo "}" >> ${meta.sample}_input.json
