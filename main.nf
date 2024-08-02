@@ -203,7 +203,7 @@ process train_bpnet {
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
-	tuple val(meta), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw), path(gc_background)
+	tuple val(meta), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw) //, path(gc_background)
 	path(fasta)
 	path(chrom_sizes)
 	path(keep_chroms)
@@ -225,10 +225,6 @@ process train_bpnet {
 	echo "        }," >> ${meta.sample}_input.json
 	echo "        \\"loci\\": {" >> ${meta.sample}_input.json
 	echo "            \\"source\\": [\\"${peaks}\\"]" >> ${meta.sample}_input.json
-	echo "        }," >> ${meta.sample}_input.json
-	echo "        \\"background_loci\\": {" >> ${meta.sample}_input.json
-	echo "            \\"source\\": [\\"${gc_background}\\"]," >> ${meta.sample}_input.json
-	echo "            \\"ratio\\": [0.25]" >> ${meta.sample}_input.json
 	echo "        }," >> ${meta.sample}_input.json
 	echo "        \\"bias\\": {" >> ${meta.sample}_input.json
 	echo "            \\"source\\": [\\"${control_plus_bw}\\"," >> ${meta.sample}_input.json
@@ -272,10 +268,6 @@ process train_bpnet {
 	echo "        }," >> ${meta.sample}_input.json
 	echo "        \\"loci\\": {" >> ${meta.sample}_input.json
 	echo "            \\"source\\": [\\"${peaks}\\"]" >> ${meta.sample}_input.json
-	echo "        }," >> ${meta.sample}_input.json
-	echo "        \\"background_loci\\": {" >> ${meta.sample}_input.json
-	echo "            \\"source\\": [\\"${gc_background}\\"]," >> ${meta.sample}_input.json
-	echo "            \\"ratio\\": [0.25]" >> ${meta.sample}_input.json
 	echo "        }," >> ${meta.sample}_input.json
 	echo "        \\"bias\\": {" >> ${meta.sample}_input.json
 	echo "            \\"source\\": [\\"${control_plus_bw}\\"," >> ${meta.sample}_input.json
@@ -462,14 +454,14 @@ workflow {
 	file("${launchDir}/${params.blacklist}", checkIfExists: true)
 	)
 	
-	gc_background_ch = gc_matched_negatives(
-	filtered_peak_ch,
-	file("${launchDir}/${params.fasta}", checkIfExists: true),
-	file("${launchDir}/${params.chrom_sizes}", checkIfExists: true)
-	)
+// 	gc_background_ch = gc_matched_negatives(
+// 	filtered_peak_ch,
+// 	file("${launchDir}/${params.fasta}", checkIfExists: true),
+// 	file("${launchDir}/${params.chrom_sizes}", checkIfExists: true)
+// 	)
 	
 	train_ch = filtered_peak_ch.combine(bw_ch, by: 0)
-	| combine(gc_background_ch, by: 0)
+// 	| combine(gc_background_ch, by: 0)
 	
 	model_ch = train_bpnet(
 	train_ch,
