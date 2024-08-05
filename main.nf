@@ -248,7 +248,7 @@ process train_bpnet {
         --input-seq-len 2114 \
         --output-len 1000 \
         --shuffle \
-        --threads 8 \
+        --threads 10 \
         --epochs 100 \
 	   --batch-size 64 \
 		--reverse-complement-augmentation \
