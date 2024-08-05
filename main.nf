@@ -25,7 +25,7 @@ log.info """
 
 process stranded_bigwig {
 	tag "$meta.sample"
-	publishDir "${params.results_dir}/bigwigs/", mode: 'copy'
+	publishDir "${params.results_dir}/bigwigs/actual/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -211,7 +211,7 @@ process train_bpnet {
 	path(bpnet_params)
 	
 	output:
-	tuple val(meta), path("${meta.sample}_model.h5"), path("${meta.sample}_input.json")
+	tuple val(meta), path("${meta.sample}_model_split000"), path("${meta.sample}_input.json")
 	
 	script:
 	// NOTE: how to handle input json files?
@@ -248,7 +248,7 @@ process train_bpnet {
         --input-seq-len 2114 \
         --output-len 1000 \
         --shuffle \
-        --threads 10 \
+        --threads ${task.cpus} \
         --epochs 100 \
 	   --batch-size 64 \
 		--reverse-complement-augmentation \
@@ -277,7 +277,8 @@ process train_bpnet {
 	echo "    }" >> ${meta.sample}_input.json
 	echo "}" >> ${meta.sample}_input.json
 
-	touch ${meta.sample}_model.h5
+	mkdir ${meta.sample}_model_split000
+	touch ${meta.sample}_model_split000/saved_model.pb
 	"""
 }
 
@@ -287,40 +288,47 @@ process train_bpnet {
 
 process predicted_bw_test {
 	tag "$meta.sample"
+	publishDir "${params.results_dir}/bigwigs/predicted_test/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
-	tuple val(meta), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
-	path(bpnet_model)
+	tuple val(meta), path(bpnet_model), path(input_json), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
 	path(fasta)
 	path(chrom_sizes)
-	path(keep_chroms)
-	path(chrom_splits)
-	path(model_params)
+	val(test_chroms)
 	
 	output:
-	tuple val(meta), path(" model.h5")
+	tuple val(meta), path("${meta.sample}_plus_pred.bw"), path("${meta.sample}_minus_pred.bw")
 	
 	script:
-	// NOTE: how to handle input json files?
-	// NOTE: how to pass test chromosomes from config?
+	def test_chroms_str = test_chroms.join(" ")
     """
+    
 	bpnet-predict \
         --model $bpnet_model\
         --chrom-sizes $chrom_sizes \
-        --chroms $test_chroms \
+        --chroms $test_chroms_str \
         --test-indices-file None \
-        --reference-genome $REFERENCE_GENOME \
+        --reference-genome $fasta \
         --output-dir . \
-        --input-data $INPUT_DATA \
+        --input-data $input_json \
         --sequence-generator-name BPNet \
         --input-seq-len 2114 \
         --output-len 1000 \
         --output-window-size 1000 \
         --batch-size 64 \
         --reverse-complement-average \
-        --threads 2 \
+        --threads ${task.cpus} \
         --generate-predicted-profile-bigWigs
+	"""
+	stub:
+	def test_chroms_str = test_chroms.join(" ")
+	"""
+	ls ${bpnet_model}/saved_model.pb
+	echo $test_chroms_str
+	touch ${meta.sample}_plus_pred.bw
+	touch ${meta.sample}_minus_pred.bw
+	
 	"""
 }
 
@@ -330,41 +338,48 @@ process predicted_bw_test {
 
 process predicted_bw_all {
 	tag "$meta.sample"
+	publishDir "${params.results_dir}/bigwigs/predicted_all/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
-	tuple val(meta), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
-	path(bpnet_model)
+	tuple val(meta), path(bpnet_model), path(input_json), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
 	path(fasta)
 	path(chrom_sizes)
-	path(keep_chroms)
-	path(chrom_splits)
-	path(model_arch)
+	val(all_chroms)
 	
 	output:
-	tuple val(meta), path(" model.h5")
+	tuple val(meta), path("${meta.sample}_plus_pred.bw"), path("${meta.sample}_minus_pred.bw")
 	
 	script:
-	// NOTE: how to handle input json files?
-	// NOTE: how to pass test chromosomes from config?
+	def all_chroms_str = all_chroms.join(" ")
     """
 	bpnet-predict \
         --model $bpnet_model\
         --chrom-sizes $chrom_sizes \
-        --chroms $all_chroms \
+        --chroms $all_chroms_str \
         --test-indices-file None \
-        --reference-genome $REFERENCE_GENOME \
+        --reference-genome $fasta \
         --output-dir . \
-        --input-data $INPUT_DATA \
+        --input-data $input_json \
         --sequence-generator-name BPNet \
         --input-seq-len 2114 \
         --output-len 1000 \
         --output-window-size 1000 \
         --batch-size 64 \
         --reverse-complement-average \
-        --threads 2 \
+        --threads ${task.cpus} \
         --generate-predicted-profile-bigWigs
 	"""
+	stub:
+	def all_chroms_str = all_chroms.join(" ")
+	"""
+	ls ${bpnet_model}/saved_model.pb
+	echo $all_chroms_str
+	touch ${meta.sample}_plus_pred.bw
+	touch ${meta.sample}_minus_pred.bw
+	
+	"""
+
 }
 
 /*
@@ -373,36 +388,44 @@ process predicted_bw_all {
 
 process compute_importance {
 	tag "$meta.sample"
+	publishDir "${params.results_dir}/bigwigs/contribution_all/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
-	tuple val(meta), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
-	path(bpnet_model)
+	tuple val(meta), path(bpnet_model), path(input_json), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
 	path(fasta)
 	path(chrom_sizes)
-	path(keep_chroms)
-	path(chrom_splits)
-	path(model_arch)
+	val(all_chroms)
 	
 	output:
-	tuple val(meta), path(" model.h5")
+	tuple val(meta), path("${meta.sample}_plus_contr.bw"), path("${meta.sample}_minus_contr.bw")
 	
 	script:
-	// NOTE: how to handle input json files?
-	// NOTE: how to pass test chromosomes from config?
+	def all_chroms_str = all_chroms.join(" ")
     """
 	bpnet-shap \
         --reference-genome $fasta \
         --model $bpnet_model  \
         --bed-file $peaks \
-        --chroms $all_chroms \
+        --chroms $all_chroms_str \
         --output-dir . \
         --input-seq-len 2114 \
         --control-len 1000 \
         --task-id 0 \
-        --input-data $INPUT_DATA \
+        --input-data $input_json \
         --generate-shap-bigWigs
 	"""
+	
+	stub:
+	def all_chroms_str = all_chroms.join(" ")
+	"""
+	ls ${bpnet_model}/saved_model.pb
+	echo $all_chroms_str
+	touch ${meta.sample}_plus_contr.bw
+	touch ${meta.sample}_minus_contr.bw
+	
+	"""
+
 }
 
 /*
@@ -420,7 +443,7 @@ process compute_importance {
  
 workflow {
 	
-	bam_ch = Channel.fromPath(params.samplesheet)
+	bam_ch = Channel.fromPath(params.samplesheet, checkIfExists: true)
 	| splitCsv( header:true )
     | map { row ->
         bam_meta = row.subMap('sample')
@@ -437,7 +460,7 @@ workflow {
 	file("${launchDir}/${params.chrom_sizes}", checkIfExists: true)
 	)
 	
-	peak_bw_ch = Channel.fromPath(params.samplesheet)
+	peak_bw_ch = Channel.fromPath(params.samplesheet, checkIfExists: true)
 	| splitCsv( header:true )
     | map { row ->
         bam_meta = row.subMap('sample')
@@ -471,6 +494,50 @@ workflow {
 	file("${launchDir}/${params.chrom_splits}", checkIfExists: true),
 	file(params.bpnet_params, checkIfExists: true)	
 	)
+	| combine(train_ch, by: 0)
+// 	| view
 	
+	test_chroms_ch = Channel.fromPath(params.chrom_splits, checkIfExists: true)
+	| splitJson(path: '0.test')
+	| collect
+// 	| view
+	
+	val_chroms_ch = Channel.fromPath(params.chrom_splits, checkIfExists: true)
+	| splitJson(path: '0.val')
+	| collect
+// 	| view
+	
+	train_chroms_ch = Channel.fromPath(params.chrom_splits, checkIfExists: true)
+	| splitJson(path: '0.train')
+	| collect
+// 	| view
+	
+	all_chroms_ch = Channel.fromPath(params.keep_chroms, checkIfExists: true)
+	| splitCsv( header:false)
+	| collect
+// 	| view
+	
+	predicted_bw_test(
+	model_ch,
+	file("${launchDir}/${params.fasta}", checkIfExists: true),
+	file("${launchDir}/${params.chrom_sizes}", checkIfExists: true),
+	test_chroms_ch
+	)
+	
+	predicted_bw_all(
+	model_ch,
+	file("${launchDir}/${params.fasta}", checkIfExists: true),
+	file("${launchDir}/${params.chrom_sizes}", checkIfExists: true),
+	all_chroms_ch
+	)
+
+	compute_importance(
+	model_ch,
+	file("${launchDir}/${params.fasta}", checkIfExists: true),
+	file("${launchDir}/${params.chrom_sizes}", checkIfExists: true),
+	all_chroms_ch
+	)
+
+		
 }
 
