@@ -248,7 +248,7 @@ process train_bpnet {
         --input-seq-len 2114 \
         --output-len 1000 \
         --shuffle \
-        --threads ${task.cpus} \
+        --threads 8 \
         --epochs 100 \
 	   --batch-size 64 \
 		--reverse-complement-augmentation \
@@ -318,7 +318,7 @@ process predicted_bw_test {
         --output-window-size 1000 \
         --batch-size 64 \
         --reverse-complement-average \
-        --threads ${task.cpus} \
+        --threads 4 \
         --generate-predicted-profile-bigWigs
 	"""
 	stub:
@@ -367,7 +367,7 @@ process predicted_bw_all {
         --output-window-size 1000 \
         --batch-size 64 \
         --reverse-complement-average \
-        --threads ${task.cpus} \
+        --threads 4 \
         --generate-predicted-profile-bigWigs
 	"""
 	stub:
