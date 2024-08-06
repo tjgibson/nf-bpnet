@@ -303,6 +303,8 @@ process predicted_bw_test {
 	script:
 	def test_chroms_str = test_chroms.join(" ")
     """
+    mkdir ${meta.sample}_pred
+    
     
 	bpnet-predict \
         --model $bpnet_model\
@@ -352,6 +354,8 @@ process predicted_bw_all {
 	script:
 	def all_chroms_str = all_chroms.join(" ")
     """
+	 mkdir ${meta.sample}_pred
+	
 	bpnet-predict \
         --model $bpnet_model\
         --chrom-sizes $chrom_sizes \
@@ -401,6 +405,8 @@ process compute_importance {
 	script:
 	def all_chroms_str = all_chroms.join(" ")
     """
+	 mkdir ${meta.sample}_shap
+	
 	bpnet-shap \
         --reference-genome $fasta \
         --model $bpnet_model  \
