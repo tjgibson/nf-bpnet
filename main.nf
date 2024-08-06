@@ -25,7 +25,7 @@ log.info """
 
 process stranded_bigwig {
 	tag "$meta.sample"
-	publishDir "${params.results_dir}/bigwigs/actual/", mode: 'copy'
+	publishDir "${params.results_dir}/bigwigs/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -199,7 +199,7 @@ process gc_matched_negatives {
 
 process train_bpnet {
 	tag "$meta.sample"
-	publishDir "${params.results_dir}/modeling/bpnet_models/", mode: 'copy'
+	publishDir "${params.results_dir}/bpnet_models/${meta.sample}/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -211,7 +211,7 @@ process train_bpnet {
 	path(bpnet_params)
 	
 	output:
-	tuple val(meta), path("${meta.sample}_model_split000"), path("${meta.sample}_input.json")
+	tuple val(meta), path("model_split000"), path("${meta.sample}_input.json")
 	
 	script:
 	// NOTE: how to handle input json files?
@@ -244,11 +244,11 @@ process train_bpnet {
         --model-arch-name BPNet \
         --model-arch-params-json $bpnet_params \
         --sequence-generator-name BPNet \
-        --model-output-filename ${meta.sample}_model \
+        --model-output-filename model \
         --input-seq-len 2114 \
         --output-len 1000 \
         --shuffle \
-        --threads 10 \
+        --threads 1 \
         --epochs 100 \
 	   --batch-size 64 \
 		--reverse-complement-augmentation \
@@ -277,8 +277,8 @@ process train_bpnet {
 	echo "    }" >> ${meta.sample}_input.json
 	echo "}" >> ${meta.sample}_input.json
 
-	mkdir ${meta.sample}_model_split000
-	touch ${meta.sample}_model_split000/saved_model.pb
+	mkdir model_split000
+	touch model_split000/saved_model.pb
 	"""
 }
 
@@ -288,7 +288,7 @@ process train_bpnet {
 
 process predicted_bw_test {
 	tag "$meta.sample"
-	publishDir "${params.results_dir}/bigwigs/predicted_test/", mode: 'copy'
+	publishDir "${params.results_dir}/predicted_test/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -298,7 +298,7 @@ process predicted_bw_test {
 	val(test_chroms)
 	
 	output:
-	tuple val(meta), path("${meta.sample}_plus_pred.bw"), path("${meta.sample}_minus_pred.bw")
+	tuple val(meta), path("${meta.sample}_pred")
 	
 	script:
 	def test_chroms_str = test_chroms.join(" ")
@@ -310,7 +310,7 @@ process predicted_bw_test {
         --chroms $test_chroms_str \
         --test-indices-file None \
         --reference-genome $fasta \
-        --output-dir . \
+        --output-dir ${meta.sample}_pred \
         --input-data $input_json \
         --sequence-generator-name BPNet \
         --input-seq-len 2114 \
@@ -318,7 +318,7 @@ process predicted_bw_test {
         --output-window-size 1000 \
         --batch-size 64 \
         --reverse-complement-average \
-        --threads 4 \
+        --threads 1 \
         --generate-predicted-profile-bigWigs
 	"""
 	stub:
@@ -326,8 +326,7 @@ process predicted_bw_test {
 	"""
 	ls ${bpnet_model}/saved_model.pb
 	echo $test_chroms_str
-	touch ${meta.sample}_plus_pred.bw
-	touch ${meta.sample}_minus_pred.bw
+	mkdir ${meta.sample}_pred
 	
 	"""
 }
@@ -338,7 +337,7 @@ process predicted_bw_test {
 
 process predicted_bw_all {
 	tag "$meta.sample"
-	publishDir "${params.results_dir}/bigwigs/predicted_all/", mode: 'copy'
+	publishDir "${params.results_dir}/predicted_all/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -348,7 +347,7 @@ process predicted_bw_all {
 	val(all_chroms)
 	
 	output:
-	tuple val(meta), path("${meta.sample}_plus_pred.bw"), path("${meta.sample}_minus_pred.bw")
+	tuple val(meta), path("${meta.sample}_pred")
 	
 	script:
 	def all_chroms_str = all_chroms.join(" ")
@@ -359,7 +358,7 @@ process predicted_bw_all {
         --chroms $all_chroms_str \
         --test-indices-file None \
         --reference-genome $fasta \
-        --output-dir . \
+        --output-dir ${meta.sample}_pred \
         --input-data $input_json \
         --sequence-generator-name BPNet \
         --input-seq-len 2114 \
@@ -367,7 +366,7 @@ process predicted_bw_all {
         --output-window-size 1000 \
         --batch-size 64 \
         --reverse-complement-average \
-        --threads 4 \
+        --threads 1 \
         --generate-predicted-profile-bigWigs
 	"""
 	stub:
@@ -375,8 +374,7 @@ process predicted_bw_all {
 	"""
 	ls ${bpnet_model}/saved_model.pb
 	echo $all_chroms_str
-	touch ${meta.sample}_plus_pred.bw
-	touch ${meta.sample}_minus_pred.bw
+	mkdir ${meta.sample}_pred
 	
 	"""
 
@@ -388,7 +386,7 @@ process predicted_bw_all {
 
 process compute_importance {
 	tag "$meta.sample"
-	publishDir "${params.results_dir}/bigwigs/contribution_all/", mode: 'copy'
+	publishDir "${params.results_dir}/contribution_all/", mode: 'copy'
 	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
@@ -398,7 +396,7 @@ process compute_importance {
 	val(all_chroms)
 	
 	output:
-	tuple val(meta), path("${meta.sample}_plus_contr.bw"), path("${meta.sample}_minus_contr.bw")
+	tuple val(meta), path("${meta.sample}_shap")
 	
 	script:
 	def all_chroms_str = all_chroms.join(" ")
@@ -408,12 +406,11 @@ process compute_importance {
         --model $bpnet_model  \
         --bed-file $peaks \
         --chroms $all_chroms_str \
-        --output-dir . \
+        --output-dir ${meta.sample}_shap \
         --input-seq-len 2114 \
         --control-len 1000 \
         --task-id 0 \
-        --input-data $input_json \
-        --generate-shap-bigWigs
+        --input-data $input_json
 	"""
 	
 	stub:
@@ -421,8 +418,7 @@ process compute_importance {
 	"""
 	ls ${bpnet_model}/saved_model.pb
 	echo $all_chroms_str
-	touch ${meta.sample}_plus_contr.bw
-	touch ${meta.sample}_minus_contr.bw
+	mkdir ${meta.sample}_shap
 	
 	"""
 
