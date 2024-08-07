@@ -434,11 +434,82 @@ process compute_importance {
  * motif discovery
  */
 
+process discover_motifs {
+	tag "$meta.sample"
+	publishDir "${params.results_dir}/modisco_motifs/${meta.sample}", mode: 'copy'
+	container = "vivekramalingam/tf-atlas:gcp-modisco_modiscolite_v2.0.7m"
+	
+	input:
+	tuple val(meta), path(shap_dir)
+
+	
+	output:
+	tuple val(meta), path("modisco_results.h5"), emit: results
+	path("report"), emit: report
+	
+	script:
+    """
+	modisco motifs \
+		-i ${shap_dir}/counts_scores.h5 \
+		-o modisco_results.h5
+		
+	modisco report \
+		-i modisco_results.h5 \
+		-o report/ \
+		-s report/
+	"""
+	
+	stub:
+	"""
+	touch modisco_results.h5
+	mkdir report
+	"""
+}
+
+
 /*
  * identification of motif instances
  */
 
+process finemo_motif_instances {
+	tag "$meta.sample"
+	publishDir "${params.results_dir}/motif_hits/${meta.sample}", mode: 'copy'
+	container = "vivekramalingam/tf-atlas:gcp-motif_hits_v2.2.0-rc.1"
+	
+	input:
+	tuple val(meta), path(shap_dir), path(modisco_results)
+	
+	output:
+	tuple val(meta), path("motif_hits")
+	
+	script:
+    """
+	
+	finemo extract-regions-bpnet-h5 \
+        -c ${shap_dir}/counts_scores.h5 \
+    	-o regions.npz
+    
+    finemo call-hits \
+    	-r regions.npz \
+    	-m $modisco_results \
+    	-p ${shap_dir}/peaks_valid_scores.bed \
+    	-o motif_hits
 
+   finemo report \
+    	-r regions.npz \
+    	-h motif_hits/hits.tsv \
+    	-m $modisco_results \
+    	-p ${shap_dir}/peaks_valid_scores.bed \
+    	-o motif_hits
+    	
+	"""
+	
+	stub:
+	"""
+	mkdir motif_hits
+	
+	"""
+}
 /*
  * Run workflow
  */
@@ -533,13 +604,22 @@ workflow {
 	all_chroms_ch
 	)
 
-	compute_importance(
+	shap_ch = compute_importance(
 	model_ch,
 	file("${launchDir}/${params.fasta}", checkIfExists: true),
 	file("${launchDir}/${params.chrom_sizes}", checkIfExists: true),
 	all_chroms_ch
 	)
-
+	
+	discover_motifs(shap_ch)
+	
+	finemo_ch = shap_ch
+	| combine(discover_motifs.out.results, by: 0)
+	
+	finemo_motif_instances(finemo_ch)
+	
+	
+	
 		
 }
 
