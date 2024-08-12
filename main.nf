@@ -453,7 +453,7 @@ process discover_motifs {
 		-i ${shap_dir}/counts_scores.h5 \
 		-o modisco_results.h5 \
 		--max_seqlets 20000 \
-		png_dir .
+		--pngs_dir .
 		
 	modisco report \
 		-i modisco_results.h5 \
