@@ -446,7 +446,7 @@ process discover_motifs {
 	
 	output:
 	tuple val(meta), path("modisco_results.h5"), emit: results
-	path("report"), emit: report
+// 	path("report"), emit: report
 	
 	script:
     """
@@ -456,11 +456,11 @@ process discover_motifs {
 		--max_seqlets 20000 \
 		--pngs_dir .
 		
-	modisco report \
-		-i modisco_results.h5 \
-		-o report/ \
-		-s report/ \
-		--meme_db $meme_db
+#	modisco report \
+#		-i modisco_results.h5 \
+#		-o report/ \
+#		-s report/ \
+#		--meme_db $meme_db
 	"""
 	
 	stub:
