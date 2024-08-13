@@ -441,6 +441,7 @@ process discover_motifs {
 	
 	input:
 	tuple val(meta), path(shap_dir)
+	path(meme_db)
 
 	
 	output:
@@ -458,7 +459,8 @@ process discover_motifs {
 	modisco report \
 		-i modisco_results.h5 \
 		-o report/ \
-		-s report/
+		-s report/ \
+		--meme_db $meme_db
 	"""
 	
 	stub:
@@ -613,7 +615,10 @@ workflow {
 	all_chroms_ch
 	)
 	
-	discover_motifs(shap_ch)
+	discover_motifs(
+	shap_ch, 
+	file("${launchDir}/${params.meme_motif_db}")
+	)
 	
 	finemo_ch = shap_ch
 	| combine(discover_motifs.out.results, by: 0)
