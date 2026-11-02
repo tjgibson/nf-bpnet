@@ -1,12 +1,5 @@
 #! /usr/bin/env nextflow
 
-log.info """
-	bpnet Pipeline
-	===================================
-	samplesheet: ${params.samplesheet}
-	results_dir: ${params.results_dir}
-	"""
-	.stripIndent()
 
 /* input files:	
  * samplesheet
@@ -478,7 +471,7 @@ process discover_motifs {
 process finemo_motif_instances {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/motif_hits/${meta.sample}", mode: 'copy'
-	container "vivekramalingam/tf-atlas:gcp-motif_hits_v2.2.0-rc.1"
+	containerq "vivekramalingam/tf-atlas:gcp-motif_hits_v2.2.0-rc.1"
 	
 	input:
 	tuple val(meta), path(shap_dir), path(modisco_results)
