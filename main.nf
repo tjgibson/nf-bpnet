@@ -1,5 +1,12 @@
 #! /usr/bin/env nextflow
 
+log.info """
+	bpnet Pipeline
+	===================================
+	samplesheet: ${params.samplesheet}
+	results_dir: ${params.results_dir}
+	"""
+	.stripIndent()
 
 /* input files:	
  * samplesheet
@@ -19,7 +26,7 @@
 process stranded_bigwig {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/bigwigs/", mode: 'copy'
-	container "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
+	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
 	tuple val(meta), path(bam), path(bam_index), path(control_bam), path(control_index)
@@ -76,7 +83,7 @@ process stranded_bigwig {
 process remove_outliers {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/filtered_peaks/", mode: 'copy'
-	container "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
+	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
 	tuple val(meta), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
@@ -150,7 +157,7 @@ process remove_outliers {
 process gc_matched_negatives {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/modeling/background_regions/", mode: 'copy'
-	container "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
+	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
 	tuple val(meta), path(peaks)
@@ -193,7 +200,7 @@ process gc_matched_negatives {
 process train_bpnet {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/bpnet_models/${meta.sample}/", mode: 'copy'
-	container "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
+	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
 	tuple val(meta), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw) //, path(gc_background)
@@ -282,7 +289,7 @@ process train_bpnet {
 process predicted_bw_test {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/predicted_test/", mode: 'copy'
-	container "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
+	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
 	tuple val(meta), path(bpnet_model), path(input_json), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
@@ -333,7 +340,7 @@ process predicted_bw_test {
 process predicted_bw_all {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/predicted_all/", mode: 'copy'
-	container "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
+	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
 	tuple val(meta), path(bpnet_model), path(input_json), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
@@ -384,7 +391,7 @@ process predicted_bw_all {
 process compute_importance {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/contribution_all/", mode: 'copy'
-	container "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
+	container = "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
 	
 	input:
 	tuple val(meta), path(bpnet_model), path(input_json), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
@@ -430,7 +437,7 @@ process compute_importance {
 process discover_motifs {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/modisco_motifs/${meta.sample}", mode: 'copy'
-	container "vivekramalingam/tf-atlas:gcp-modisco_modiscolite_v2.0.7m"
+	container = "vivekramalingam/tf-atlas:gcp-modisco_modiscolite_v2.0.7m"
 	
 	input:
 	tuple val(meta), path(shap_dir)
@@ -471,7 +478,7 @@ process discover_motifs {
 process finemo_motif_instances {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/motif_hits/${meta.sample}", mode: 'copy'
-	containerq "vivekramalingam/tf-atlas:gcp-motif_hits_v2.2.0-rc.1"
+	container = "vivekramalingam/tf-atlas:gcp-motif_hits_v2.2.0-rc.1"
 	
 	input:
 	tuple val(meta), path(shap_dir), path(modisco_results)
