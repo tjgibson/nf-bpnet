@@ -393,7 +393,7 @@ process compute_importance {
 	tag "$meta.sample"
 	publishDir "${params.results_dir}/contribution_all/", mode: 'copy'
 	container "vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
-	time { 12.hour * task.attempt }
+	time { 24.hour * task.attempt }
 	
 	input:
 	tuple val(meta), path(bpnet_model), path(input_json), path(peaks), path(plus_bw), path(minus_bw), path(control_plus_bw), path(control_minus_bw)
