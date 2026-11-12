@@ -622,10 +622,10 @@ workflow {
 	file("${launchDir}/${params.meme_motif_db}")
 	)
 	
-	finemo_ch = shap_ch
-	| combine(discover_motifs.out.results, by: 0)
+	// finemo_ch = shap_ch
+	// | combine(discover_motifs.out.results, by: 0)
 	
-	finemo_motif_instances(finemo_ch)
+	// finemo_motif_instances(finemo_ch)
 	
 	
 	
